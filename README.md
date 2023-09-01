@@ -1,3 +1,3 @@
-# Fastify & TypeORM
+# NestJS & TypeORM
 
 ## Under development
