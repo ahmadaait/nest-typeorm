@@ -1,15 +1,15 @@
 import { registerAs } from '@nestjs/config';
+import { DatabaseConfig } from './config.type';
 import {
-  IsBoolean,
-  IsInt,
   IsOptional,
-  IsString,
-  Max,
+  IsInt,
   Min,
+  Max,
+  IsString,
   ValidateIf,
+  IsBoolean,
 } from 'class-validator';
 import validateConfig from 'src/utils/validate-config';
-import { DatabaseConfig } from './config.type';
 
 class EnvironmentVariablesValidator {
   @ValidateIf((envValues) => envValues.DATABASE_URL)

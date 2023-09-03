@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { DeepPartial, Repository } from 'typeorm';
+import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { NullableType } from 'src/utils/types/nullable.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { User } from './entities/user.entity';
 import { IUsersService } from './users';
 
 @Injectable()
 export class UsersService implements IUsersService {
   constructor(
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -27,7 +27,7 @@ export class UsersService implements IUsersService {
   }
 
   findUsersWithPagination(
-    paginationOptions: IPaginationOptions
+    paginationOptions: IPaginationOptions,
   ): Promise<User[]> {
     return this.usersRepository.find({
       skip: (paginationOptions.page - 1) * paginationOptions.limit,
@@ -40,7 +40,7 @@ export class UsersService implements IUsersService {
       this.usersRepository.create({
         id,
         ...payload,
-      })
+      }),
     );
   }
 

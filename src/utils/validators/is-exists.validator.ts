@@ -1,18 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { ValidationArguments } from 'class-validator/types/validation/ValidationArguments';
 import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { ValidationArguments } from 'class-validator/types/validation/ValidationArguments';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 @ValidatorConstraint({ name: 'IsExist', async: true })
 export class IsExist implements ValidatorConstraintInterface {
   constructor(
     @InjectDataSource()
-    private dataSource: DataSource
+    private dataSource: DataSource,
   ) {}
 
   async validate(value: string, validationArguments: ValidationArguments) {
