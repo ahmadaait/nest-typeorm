@@ -5,6 +5,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { TypeOrmConfigService } from './database/typeorm-config.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmConfigService } from './database/typeorm-config.service';
         return dataSource;
       },
     }),
+    UsersModule,
   ],
   controllers: [],
   providers: [],
