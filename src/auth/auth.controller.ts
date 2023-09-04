@@ -10,6 +10,7 @@ import { IUsersService } from 'src/users/users';
 import { Routes, Services } from 'src/utils/constants';
 import { IAuthService } from './auth';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
+import { AuthRegisterDto } from './dtos/auth-register.dto';
 import { LoginResponseType } from './types/login-response.type';
 
 @Controller(Routes.AUTH)
@@ -23,5 +24,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() loginDto: AuthEmailLoginDto): Promise<LoginResponseType> {
     return this.authService.validateLogin(loginDto);
+  }
+
+  @Post('register')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async register(@Body() createUserDto: AuthRegisterDto): Promise<void> {
+    return await this.authService.registerUser(createUserDto);
   }
 }

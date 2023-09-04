@@ -1,13 +1,13 @@
 import {
-  Column,
   AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
   CreateDateColumn,
   Entity,
   Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 
 import bcrypt from 'bcryptjs';
@@ -58,6 +58,11 @@ export class User extends EntityHelper {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: String, nullable: true })
+  @Index()
+  @Exclude({ toPlainOnly: true })
+  hash: string | null;
 
   @UpdateDateColumn()
   updatedAt: Date;
