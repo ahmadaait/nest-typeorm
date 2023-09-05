@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import ms from 'ms';
 import { AllConfigType } from 'src/config/config.type';
@@ -11,6 +10,7 @@ import { ISessionService } from 'src/session/session';
 import { User } from 'src/users/entities/user.entity';
 import { IUsersService } from 'src/users/users';
 import { Services } from 'src/utils/constants';
+import { compareHash } from 'src/utils/helpers';
 import { IAuthService } from './auth';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { AuthRegisterDto } from './dtos/auth-register.dto';
@@ -55,10 +55,7 @@ export class AuthService implements IAuthService {
       );
     }
 
-    const isValidPassword = await bcrypt.compare(
-      loginDto.password,
-      user.password
-    );
+    const isValidPassword = await compareHash(loginDto.password, user.password);
 
     if (!isValidPassword) {
       throw new HttpException(
@@ -95,8 +92,8 @@ export class AuthService implements IAuthService {
       .update(randomStringGenerator())
       .digest('hex');
 
-console.log(hash);
-    
+    console.log(hash);
+
     await this.usersService.createUser({
       ...registerDto,
       email: registerDto.email,
