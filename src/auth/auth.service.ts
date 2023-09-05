@@ -95,6 +95,8 @@ export class AuthService implements IAuthService {
       .update(randomStringGenerator())
       .digest('hex');
 
+console.log(hash);
+    
     await this.usersService.createUser({
       ...registerDto,
       email: registerDto.email,
