@@ -7,7 +7,7 @@ import ms from 'ms';
 import { AllConfigType } from 'src/config/config.type';
 import { Session } from 'src/session/entities/session.entity';
 import { ISessionService } from 'src/session/session';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserStatus } from 'src/users/entities/user.entity';
 import { IUsersService } from 'src/users/users';
 import { Services } from 'src/utils/constants';
 import { compareHash } from 'src/utils/helpers';
@@ -97,6 +97,7 @@ export class AuthService implements IAuthService {
     await this.usersService.createUser({
       ...registerDto,
       email: registerDto.email,
+      status: UserStatus.Inactive,
       hash,
     });
   }
