@@ -4,9 +4,10 @@ import Handlebars from 'handlebars';
 import fs from 'node:fs/promises';
 import nodemailer from 'nodemailer';
 import { AllConfigType } from 'src/config/config.type';
+import { IMailerService } from './mailer';
 
 @Injectable()
-export class MailerService {
+export class MailerService implements IMailerService {
   private readonly transporter: nodemailer.Transporter;
   constructor(private readonly configService: ConfigService<AllConfigType>) {
     this.transporter = nodemailer.createTransport({
@@ -23,6 +24,7 @@ export class MailerService {
         user: configService.get<string>('mailer.user', { infer: true }),
         pass: configService.get<string>('mailer.password', { infer: true }),
       },
+      debug: true,
     });
   }
 

@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import crypto from 'crypto';
 import ms from 'ms';
 import { AllConfigType } from 'src/config/config.type';
+import { IMailsService } from 'src/mails/mails';
 import { Session } from 'src/session/entities/session.entity';
 import { ISessionService } from 'src/session/session';
 import { User, UserStatus } from 'src/users/entities/user.entity';
@@ -21,6 +22,7 @@ import { LoginResponseType } from './types/login-response.type';
 export class AuthService implements IAuthService {
   constructor(
     @Inject(Services.USERS) private readonly usersService: IUsersService,
+    @Inject(Services.MAILS) private readonly mailsService: IMailsService,
     @Inject(Services.SESSION) private readonly sessionService: ISessionService,
     private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService
@@ -99,6 +101,13 @@ export class AuthService implements IAuthService {
       email: registerDto.email,
       status: UserStatus.Inactive,
       hash,
+    });
+
+    await this.mailsService.confirmRegisterUser({
+      to: registerDto.email,
+      data: {
+        hash,
+      },
     });
   }
 
