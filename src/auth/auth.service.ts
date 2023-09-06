@@ -12,10 +12,12 @@ import { User, UserStatus } from 'src/users/entities/user.entity';
 import { IUsersService } from 'src/users/users';
 import { Services } from 'src/utils/constants';
 import { compareHash } from 'src/utils/helpers';
+import { NullableType } from 'src/utils/types/nullable.type';
 import { IAuthService } from './auth';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { AuthRegisterDto } from './dtos/auth-register.dto';
 import { AuthProvidersEnum } from './enums/auth-providers.enum';
+import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { LoginResponseType } from './types/login-response.type';
 
 @Injectable()
@@ -94,8 +96,6 @@ export class AuthService implements IAuthService {
       .update(randomStringGenerator())
       .digest('hex');
 
-    console.log(hash);
-
     await this.usersService.createUser({
       ...registerDto,
       email: registerDto.email,
@@ -108,6 +108,12 @@ export class AuthService implements IAuthService {
       data: {
         hash,
       },
+    });
+  }
+
+  async status(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
+    return await this.usersService.findOneUser({
+      id: userJwtPayload.id,
     });
   }
 
