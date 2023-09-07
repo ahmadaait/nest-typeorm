@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ForgotPasswordModule } from 'src/forgot-password/forgot-password.module';
 import { MailsModule } from 'src/mails/mails.module';
 import { SessionModule } from 'src/session/session.module';
 import { UsersModule } from 'src/users/users.module';
@@ -19,6 +20,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     SessionModule,
     MailsModule,
     PassportModule,
+    ForgotPasswordModule,
     JwtModule.register({}),
   ],
 

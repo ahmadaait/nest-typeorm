@@ -17,6 +17,7 @@ import { NullableType } from 'src/utils/types/nullable.type';
 import { IAuthService } from './auth';
 import { AuthConfirmEmailDto } from './dtos/auth-confirm-email.dto';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
+import { AuthForgotPasswordDto } from './dtos/auth-forgot-password.dto';
 import { AuthRegisterDto } from './dtos/auth-register.dto';
 import { LoginResponseType } from './types/login-response.type';
 
@@ -52,5 +53,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public status(@Request() request): Promise<NullableType<User>> {
     return this.authService.status(request.user);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async forgotPassword(
+    @Body() forgotPasswordDto: AuthForgotPasswordDto
+  ): Promise<void> {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 }
