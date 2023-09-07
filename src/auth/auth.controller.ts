@@ -19,6 +19,7 @@ import { AuthConfirmEmailDto } from './dtos/auth-confirm-email.dto';
 import { AuthEmailLoginDto } from './dtos/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dtos/auth-forgot-password.dto';
 import { AuthRegisterDto } from './dtos/auth-register.dto';
+import { AuthResetPasswordDto } from './dtos/auth-reset-password.dto';
 import { LoginResponseType } from './types/login-response.type';
 
 @Controller(Routes.AUTH)
@@ -61,5 +62,14 @@ export class AuthController {
     @Body() forgotPasswordDto: AuthForgotPasswordDto
   ): Promise<void> {
     return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetPassword(@Body() resetPasswordDto: AuthResetPasswordDto): Promise<void> {
+    return this.authService.resetPassword(
+      resetPasswordDto.hash,
+      resetPasswordDto.password
+    );
   }
 }
