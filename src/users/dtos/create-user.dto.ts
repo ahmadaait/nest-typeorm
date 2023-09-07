@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsNotEmpty, MinLength, Validate } from 'class-validator';
+import { AuthProvidersEnum } from 'src/auth/enums/auth-providers.enum';
 import { lowerCaseTransformer } from 'src/utils/transformers/lower-case.transformer';
 import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 import { UserStatus } from '../entities/user.entity';
@@ -22,7 +23,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName: string | null;
 
-  status: UserStatus;
+  provider?: AuthProvidersEnum;
+  status?: UserStatus;
+  socialId?: string | null;
 
   hash?: string | null;
 }

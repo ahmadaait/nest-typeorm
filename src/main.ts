@@ -4,9 +4,20 @@ import { AppModule } from './app.module';
 import { AllConfigType } from './config/config.type';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  });
 
   const configService = app.get(ConfigService<AllConfigType>);
+
+  app.setGlobalPrefix(
+    configService.getOrThrow('app.apiPrefix', { infer: true }),
+    {
+      exclude: ['/'],
+    }
+  );
 
   try {
     const PORT = configService.getOrThrow('app.port', { infer: true });
@@ -15,7 +26,7 @@ async function bootstrap() {
       console.log(
         `Running in ${configService.getOrThrow('app.nodeEnv', {
           infer: true,
-        })} `,
+        })} `
       );
     });
   } catch (err) {

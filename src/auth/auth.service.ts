@@ -9,6 +9,7 @@ import { IForgotPasswordService } from 'src/forgot-password/forgot-password';
 import { IMailsService } from 'src/mails/mails';
 import { Session } from 'src/session/entities/session.entity';
 import { ISessionService } from 'src/session/session';
+import { SocialType } from 'src/social/types/social.type';
 import { User, UserStatus } from 'src/users/entities/user.entity';
 import { IUsersService } from 'src/users/users';
 import { Services } from 'src/utils/constants';
@@ -20,7 +21,6 @@ import { AuthRegisterDto } from './dtos/auth-register.dto';
 import { AuthProvidersEnum } from './enums/auth-providers.enum';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { LoginResponseType } from './types/login-response.type';
-
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
@@ -32,12 +32,10 @@ export class AuthService implements IAuthService {
     private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService
   ) {}
-
   async validateLogin(loginDto: AuthEmailLoginDto): Promise<LoginResponseType> {
     const user = await this.usersService.findOneUser({
       email: loginDto.email,
     });
-
     if (!user) {
       throw new HttpException(
         {
@@ -49,7 +47,6 @@ export class AuthService implements IAuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
-
     if (user.provider !== AuthProvidersEnum.email) {
       throw new HttpException(
         {
@@ -61,9 +58,7 @@ export class AuthService implements IAuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
-
     const isValidPassword = await compareHash(loginDto.password, user.password);
-
     if (!isValidPassword) {
       throw new HttpException(
         {
@@ -75,16 +70,13 @@ export class AuthService implements IAuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
-
     const session = await this.sessionService.create({
       user,
     });
-
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
       id: user.id,
       sessionId: session.id,
     });
-
     return {
       refreshToken,
       token,
@@ -92,20 +84,87 @@ export class AuthService implements IAuthService {
       user,
     };
   }
+  async validateSocialLogin(
+    authProvider: AuthProvidersEnum,
+    socialData: SocialType
+  ): Promise<LoginResponseType> {
+    let user: NullableType<User>;
+    const socialEmail = socialData.email?.toLowerCase();
 
+    const userByEmail = await this.usersService.findOneUser({
+      email: socialEmail,
+    });
+
+    user = await this.usersService.findOneUser({
+      socialId: socialData.id,
+      provider: authProvider,
+    });
+
+    if (user) {
+      if (socialEmail && !userByEmail) {
+        user.email = socialEmail;
+      }
+      await this.usersService.saveUser(user);
+    } else if (userByEmail) {
+      user = userByEmail;
+    } else {
+      user = await this.usersService.createUser({
+        email: socialEmail ?? null,
+        firstName: socialData.firstName ?? null,
+        lastName: socialData.lastName ?? null,
+        socialId: socialData.id,
+        provider: authProvider,
+        status: UserStatus.Active,
+      });
+
+      user = await this.usersService.findOneUser({
+        id: user.id,
+      });
+    }
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            user: 'userNotFound',
+          },
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY
+      );
+    }
+
+    const session = await this.sessionService.create({
+      user,
+    });
+
+    const {
+      token: jwtToken,
+      refreshToken,
+      tokenExpires,
+    } = await this.getTokensData({
+      id: user.id,
+      sessionId: session.id,
+    });
+
+    return {
+      refreshToken,
+      token: jwtToken,
+      tokenExpires,
+      user,
+    };
+  }
   async registerUser(registerDto: AuthRegisterDto): Promise<void> {
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex');
-
     await this.usersService.createUser({
       ...registerDto,
       email: registerDto.email,
       status: UserStatus.Inactive,
       hash,
     });
-
     await this.mailsService.confirmRegisterUser({
       to: registerDto.email,
       data: {
@@ -113,18 +172,15 @@ export class AuthService implements IAuthService {
       },
     });
   }
-
   async status(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
     return await this.usersService.findOneUser({
       id: userJwtPayload.id,
     });
   }
-
   async confirmEmail(hash: string): Promise<void> {
     const user = await this.usersService.findOneUser({
       hash,
     });
-
     if (!user) {
       throw new HttpException(
         {
@@ -134,17 +190,14 @@ export class AuthService implements IAuthService {
         HttpStatus.NOT_FOUND
       );
     }
-
     user.hash = null;
     user.status = UserStatus.Active;
     await this.usersService.saveUser(user);
   }
-
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOneUser({
       email,
     });
-
     if (!user) {
       throw new HttpException(
         {
@@ -156,7 +209,6 @@ export class AuthService implements IAuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
-
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -165,7 +217,6 @@ export class AuthService implements IAuthService {
       hash,
       user,
     });
-
     await this.mailsService.forgotPassword({
       to: email,
       data: {
@@ -173,14 +224,12 @@ export class AuthService implements IAuthService {
       },
     });
   }
-
   async resetPassword(hash: string, password: string): Promise<void> {
     const forgotReq = await this.forgotPasswordService.findOne({
       where: {
         hash,
       },
     });
-
     if (!forgotReq) {
       throw new HttpException(
         {
@@ -192,10 +241,8 @@ export class AuthService implements IAuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       );
     }
-
     const user = forgotReq.user;
     user.password = password;
-
     await this.sessionService.softDelete({
       user: {
         id: user.id,
@@ -204,7 +251,6 @@ export class AuthService implements IAuthService {
     await this.usersService.saveUser(user);
     await this.forgotPasswordService.softDelete(forgotReq.id);
   }
-
   private async getTokensData(data: {
     id: User['id'];
     sessionId: Session['id'];
@@ -215,9 +261,7 @@ export class AuthService implements IAuthService {
         infer: true,
       }
     );
-
     const tokenExpires = Date.now() + ms(tokenExpiresIn);
-
     const [token, refreshToken] = await Promise.all([
       await this.jwtService.signAsync(
         {
@@ -248,7 +292,6 @@ export class AuthService implements IAuthService {
         }
       ),
     ]);
-
     return {
       token,
       refreshToken,

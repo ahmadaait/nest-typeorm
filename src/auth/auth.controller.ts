@@ -25,8 +25,7 @@ import { LoginResponseType } from './types/login-response.type';
 @Controller(Routes.AUTH)
 export class AuthController {
   constructor(
-    @Inject(Services.AUTH) private authService: IAuthService,
-    @Inject(Services.USERS) private userService: IUsersService
+    @Inject(Services.AUTH) private readonly authService: IAuthService
   ) {}
 
   @Post('login')
