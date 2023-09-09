@@ -1,35 +1,35 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-} from '@nestjs/common';
+import { Controller, Get, Inject, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { IAuthService } from 'src/auth/auth';
 import { AuthProvidersEnum } from 'src/auth/enums/auth-providers.enum';
 import { Routes, Services } from 'src/utils/constants';
-import { LoginResponseType } from '../auth/types/login-response.type';
-import { IAuthGoogleService } from './auth-google';
-import { AuthGoogleLoginDto } from './dtos/auth-google-login.dto';
 
-@Controller(Routes.AUTH_GOOGLE)
+@ApiTags('Auth')
+@Controller(Routes.AUTH)
 export class AuthGoogleController {
   constructor(
-    @Inject(Services.AUTH) private readonly authService: IAuthService,
-    @Inject(Services.AUTH_GOOGLE)
-    private readonly authGoogleService: IAuthGoogleService
+    @Inject(Services.AUTH) private readonly authService: IAuthService
   ) {}
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: AuthGoogleLoginDto
-  ): Promise<LoginResponseType> {
-    const socialData = await this.authGoogleService.getProfileByToken(loginDto);
 
-    return this.authService.validateSocialLogin(
+  @Get('google/login')
+  @UseGuards(AuthGuard('google'))
+  async googleLogin() {
+    // Initiates the Google OAuth2 authentication process
+  }
+
+  @Get('google/redirect')
+  @UseGuards(AuthGuard('google'))
+  async googleLoginCallback(@Req() req: any) {
+    const user = await this.authService.validateSocialLogin(
       AuthProvidersEnum.google,
-      socialData
+      {
+        id: req.user.user.id,
+        firstName: req.user.user.firstName,
+        lastName: req.user.user.lastName,
+        email: req.user.user.email,
+      }
     );
+    return user;
   }
 }

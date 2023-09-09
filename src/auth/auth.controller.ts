@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/users/entities/user.entity';
 import { IUsersService } from 'src/users/users';
 import { Routes, Services } from 'src/utils/constants';
@@ -22,6 +23,7 @@ import { AuthRegisterDto } from './dtos/auth-register.dto';
 import { AuthResetPasswordDto } from './dtos/auth-reset-password.dto';
 import { LoginResponseType } from './types/login-response.type';
 
+@ApiTags('Auth')
 @Controller(Routes.AUTH)
 export class AuthController {
   constructor(
@@ -48,10 +50,12 @@ export class AuthController {
     return this.authService.confirmEmail(confirmEmailDto.hash);
   }
 
+  @ApiBearerAuth()
   @Get('status')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   public status(@Request() request): Promise<NullableType<User>> {
+    console.log(request.user);
     return this.authService.status(request.user);
   }
 
@@ -70,5 +74,25 @@ export class AuthController {
       resetPasswordDto.hash,
       resetPasswordDto.password
     );
+  }
+
+  @ApiBearerAuth()
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  @HttpCode(HttpStatus.OK)
+  public refresh(@Request() request): Promise<Omit<LoginResponseType, 'user'>> {
+    return this.authService.refreshToken({
+      sessionId: request.user.sessionId,
+    });
+  }
+
+  @ApiBearerAuth()
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async logout(@Request() request): Promise<void> {
+    await this.authService.logout({
+      sessionId: request.user.sessionId,
+    });
   }
 }
